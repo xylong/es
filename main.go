@@ -25,7 +25,7 @@ type News struct {
 	Msgtime    int64
 	Msgtype    string
 	Url        string
-	Detail     string
+	Detail     any
 }
 
 func main() {
@@ -67,10 +67,11 @@ func main() {
 		if row.URL != nil {
 			news.Url = *row.URL
 		}
+		//if v, ok := m["tolist"]; ok {
+		//
+		//}
 		if v, ok := m[news.Msgtype]; ok {
-			bytes, _ := json.Marshal(v)
-			//news.Detail = cast.ToString(bytes)
-			news.Detail = string(bytes)
+			news.Detail = v
 		}
 
 		req := elastic.NewBulkIndexRequest().Index("news").
