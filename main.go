@@ -67,9 +67,9 @@ func main() {
 		if row.URL != nil {
 			news.Url = *row.URL
 		}
-		//if v, ok := m["tolist"]; ok {
-		//
-		//}
+		if v, ok := m["tolist"]; ok {
+			news.Tolist = cast.ToStringSlice(v)
+		}
 		if v, ok := m[news.Msgtype]; ok {
 			news.Detail = v
 		}
