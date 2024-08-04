@@ -3,11 +3,11 @@ package main
 import (
 	"context"
 	"es/dao"
-	"fmt"
+	"es/model"
 	"log"
 )
 
-func getAll(ctx context.Context, query *dao.Query) {
+func getAll(ctx context.Context, query *dao.Query) []*model.Chat_data {
 	data := query.Chat_data
 
 	rows, err := query.WithContext(ctx).Chat_data.
@@ -17,5 +17,5 @@ func getAll(ctx context.Context, query *dao.Query) {
 		log.Fatalln(err)
 	}
 
-	fmt.Println(len(rows))
+	return rows
 }

@@ -26,3 +26,6 @@ PUT news
 GET /news/_count
 DELETE /news
 ```
+```azure
+DELETE /news/_doc/1
+```
