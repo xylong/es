@@ -1,7 +1,18 @@
 package main
 
-import "fmt"
+import (
+	"context"
+	"es/dao"
+)
+
+func init() {
+	ConnectDB()
+}
 
 func main() {
-	fmt.Println("aa")
+	//db := ConnectDB()
+	//GenerateTableStruct(db)
+
+	dao.SetDefault(GetDB())
+	getAll(context.Background(), dao.Q)
 }
