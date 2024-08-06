@@ -19,3 +19,10 @@ func getAll(ctx context.Context, query *dao.Query) []*model.Chat_data {
 
 	return rows
 }
+
+func getData() []*model.Chat_data {
+	db := ConnectDB()
+	//GenerateTableStruct(db)
+	dao.SetDefault(db)
+	return getAll(context.Background(), dao.Q)
+}
