@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"es/dao"
+	"es/model"
 	"fmt"
 	"github.com/olivere/elastic/v7"
 	"github.com/spf13/cast"
+	"time"
 )
 
 func init() {
@@ -17,27 +19,41 @@ type News struct {
 	Msgid      string
 	Action     string
 	From       string
-	FromUserid string
-	FromName   string
-	FromAvatar string
+	FromType   int    `json:"from_type"`
+	FromUserid string `json:"from_userid"`
+	FromName   string `json:"from_name"`
+	FromAvatar string `json:"from_avatar"`
+	FromMobile string `json:"from_mobile"`
 	Tolist     []string
 	Roomid     string
 	Msgtime    int64
+	Msgdate    string
 	Msgtype    string
 	Url        string
 	Detail     any
 }
 
 func main() {
-	//db := ConnectDB()
+	ctx := context.Background()
+	db := ConnectDB()
 	//GenerateTableStruct(db)
-	var err error
 
-	dao.SetDefault(GetDB())
+	dao.SetDefault(db)
 	rows := getAll(context.Background(), dao.Q)
 	if len(rows) == 0 {
 		return
 	}
+
+	t1 := time.Now()
+	fmt.Println(t1.Format(time.DateTime))
+	syncChatData(ctx, rows)
+	t2 := time.Now()
+	fmt.Println(t2.Format(time.DateTime))
+	fmt.Println(t2.Sub(t1))
+}
+
+func syncChatData(ctx context.Context, rows []*model.Chat_data) {
+	var err error
 
 	bulk := es.Bulk()
 	for _, row := range rows {
@@ -74,16 +90,17 @@ func main() {
 			news.Detail = v
 		}
 
-		req := elastic.NewBulkIndexRequest().Index("news").
+		req := elastic.NewBulkIndexRequest().Index("chatdata").
 			Id(news.Msgid).Doc(news)
 		bulk.Add(req)
 	}
 
 	rsp, err := bulk.Do(context.Background())
 	if err != nil {
+		fmt.Println("aaaaaa")
 		fmt.Println(err)
 	} else {
+		fmt.Println("bbbbbbbb")
 		fmt.Println(rsp)
 	}
-
 }
