@@ -34,13 +34,6 @@ type News struct {
 }
 
 func main() {
-	var (
-		wg          sync.WaitGroup
-		dataCh      = make(chan *model.Chat_data, 100)
-		resultCh    = make(chan *News, 1000)
-		workerCount = 10
-	)
-
 	rows := getData()
 	if len(rows) == 0 {
 		return
@@ -49,33 +42,17 @@ func main() {
 	t1 := time.Now()
 	fmt.Println(t1.Format(time.DateTime))
 
-	// 启动10个工作进程
-	for i := 0; i < workerCount; i++ {
-		wg.Add(1)
+	taskChan := make(chan *Task, 20)
+	resultChan := make(chan *News, 10)
+	wait := &sync.WaitGroup{}
 
-		go func() {
-			defer wg.Done()
-
-			processData(context.Background(), dataCh, resultCh)
-		}()
-	}
-
-	// 发送数据到dataCh
-	for _, row := range rows {
-		dataCh <- row
-	}
-	close(dataCh)
-
-	// 等待所有结果处理完毕
-	go func() {
-		wg.Wait()
-		close(resultCh)
-	}()
-
+	go InitTask(taskChan, resultChan, rows)
+	go DistributeTask(taskChan, wait, resultChan)
+	arr := ProcessResult(resultChan)
 	bulk := es.Bulk()
-	for ch := range resultCh {
+	for _, item := range arr {
 		req := elastic.NewBulkIndexRequest().Index("chatdata").
-			Id(ch.Msgid).Doc(ch)
+			Id(item.Msgid).Doc(item)
 		bulk.Add(req)
 	}
 	rsp, err := bulk.Do(context.Background())
